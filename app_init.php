@@ -3,6 +3,29 @@
 		die("you can't access this file directly");
 	}
 
+	$db_host = 'localhost';
+    $db_name = 'whisp-itamar';
+    $db_user = 'root';
+    $db_pass = '';
+    $db_charset = 'utf8mb4';
+
+    try {
+        $pdo = new PDO(
+            "mysql:host=$db_host;dbname=$db_name;charset=$db_charset",
+            $db_user,
+            $db_pass,
+            [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]
+        );
+    } catch (PDOException $e) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
+        exit;
+    }
+
 	define("APP_INIT_FILE_FIRED",true);
 
 	function basic_log_to_file($msg) {
@@ -134,7 +157,9 @@
 		}		
 	}
 
-	$GLOBALS = [];
+	// $GLOBALS = []; 
+	// special arr to store all global variables
+	// this caused error (Assign/overwrite the entire arr directly is not allowed in PHP)
 	
 	$GLOBALS["php_now"] = date("Y-m-d H:i:s T");
 	$GLOBALS["app_timezone"]["php_date_timezone_returns"] = date("T");	

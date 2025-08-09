@@ -37,7 +37,9 @@
 	if(strpos($_SERVER['HTTP_HOST'], 'localhost') !== false){
 		define("MYSQL_DEFAULT_SERVERNAME","localhost");
 		define("MYSQL_DEFAULT_USERNAME","root");
-		define("MYSQL_DEFAULT_DB_NAME","waclonedem_db28072025135752");
+		// define("MYSQL_DEFAULT_DB_NAME","waclonedem_db28072025135752");
+		// connection to the db I created on phpMyAdmin
+		define("MYSQL_DEFAULT_DB_NAME","whisp-itamar");  
 		define("MYSQL_DEFAULT_DB_PASSWORD","");
 		define("ENV","dev");
 	}else{

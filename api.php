@@ -43,13 +43,27 @@
 				) latest
 					ON m.contact_id = latest.contact_id AND m.msg_datetime = latest.latest_msg
 				LEFT JOIN contacts c
-					ON c.belongs_to_username = ? AND c.contact_id = m.contact_id
+					ON c.belongs_to_username = ? AND CAST(c.contact_id AS CHAR) = m.contact_id
 				WHERE m.belongs_to_username = ?
 				ORDER BY m.msg_datetime DESC
 				LIMIT $limit;
 			";
+
+			$stmt = $pdo->prepare($query);
+    		$stmt->execute([$username, $username, $username]);
+			$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+			// $results = mysql_fetch_array($query,[$username,$username,$username]);
 			
-			$results = mysql_fetch_array($query,[$username,$username,$username]);
+			// Fallbacks
+			foreach ($results as &$row) {
+				if (empty($row['contact_name'])) {
+					$row['contact_name'] = $row['contact_id'];
+				}
+				if (empty($row['profile_picture_url'])) {
+					$row['profile_picture_url'] = './profile_pics/unknown.jpg';
+				}
+			}
 			echo json_encode($results);
 			die();
 			

@@ -21,7 +21,9 @@
 				$mysql_password = constant("MYSQL_DEFAULT_DB_PASSWORD") ?? null;
 			}
 			
-			if(!$mysql_servername || !$mysql_username || !$mysql_db_name || !$mysql_password){
+			// mysql_password is empty, the old contidion returned true (!$mysql_password)
+			// so we allow empty password
+			if (!$mysql_servername || !$mysql_username || !$mysql_db_name || !isset($mysql_password)) {
 				error_log(date("Y-m-d H:i:s")."It seems that MYSQL server details, user, password is not set");
 				return false;
 			}
@@ -371,5 +373,10 @@
 	}
 
 	$GLOBALS["mysql_connections"][0] = mysql_connect();	
+	if ($GLOBALS["mysql_connections"][0] === false) {
+		error_log("Failed to connect to MySQL database.");
+	} else {
+		error_log("Successfully connected to MySQL database.");
+	}
 	$GLOBALS["mysql_now"] = mysql_fetch_array("SELECT NOW();")[0][0];
 ?>

@@ -28,7 +28,8 @@ $.settings = {
 };
 
 $.globals = {
-	username: "assaf",
+	// username: "assaf",
+	username: localStorage.getItem("username"), // if didnt find user, assaf is default
 	loggedIn: true,
 	lastTimeSentMsg: 0,
 	isLoadingMsgs: 0,
@@ -419,23 +420,28 @@ var getChats = async function($append=false,$limit=null,$username=null){
 		"successCallback": function(data){
 			$chats = data;
 			consoleLog("chats",$chats,{level: 0});
-			var $i = 0;
+			// var $i = 0;
 			var $allChatsHtml = "";
 			
-			for(var $chat in $chats){
-				var $thisChat = $chats[$i];
-				
+			// for(var $chat in $chats){
+			for (var i = 0; i < $chats.length; i++) {
+				var $thisChat = $chats[i];
 				var $contactId = $thisChat["contact_id"];
 				var $contactName = $thisChat["contact_name"] ?? $thisChat["notify_name"] ?? $contactId ?? null;
 				var $profilePicture = $thisChat["profile_picture_url"] ?? $.settings.defaultProfilePicture;
+				
 				var $lastMsgDatetime = $thisChat["msg_datetime"] ?? null;
 				var $msgTime = $thisChat["msg_datetime"] ?? null;
 				var $lastMsgBody = $thisChat["msg_body"] ?? "";
 				var $shortLastMsgBody = $lastMsgBody.substring(0,30)+"...";
 				
+				// var $contactInformation = {
+				// 	"contactName": $contactName,
+				// 	"profilePicture": $profilePicture,
+				// }
 				var $contactInformation = {
-					"contactName": $contactName,
-					"profilePicture": $profilePicture,
+					"name": $contactName, // use "name" as the key
+					"profile_picture_url": $profilePicture, // use "profile_picture_url" as the key
 				}
 				
 				var $jsonStrContactObj = jsonEncode($contactInformation);
@@ -459,7 +465,7 @@ var getChats = async function($append=false,$limit=null,$username=null){
 				$elm += '</div>';
 				
 				$allChatsHtml += $elm;
-				++$i;
+				// ++$i;
 			}
 			
 			$allChatsHtml += "<div class='load_more_chats'>🔄</div>"

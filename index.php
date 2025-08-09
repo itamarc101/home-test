@@ -22,13 +22,26 @@
 				<!--header -->
 				<div class="header row">
 					<div class="col-12 row">
-						<div class="user_avatar_container col-2">
+
+					<div class="user_avatar_container col-2">
+						<img id="user_avatar" src="./profile_pics/assaf.jpg" alt="User's Avatar"/>
+					</div>
+					<div class="user_info_container col-6">
+						<div id="user_full_name" class="user_full_name_comes_here">Assaf Levy</div>
+						<div class="user_status_comes_here hide_on_mobile">Online</div>
+					</div>
+
+
+<!-- #################################################### -->
+						<!-- <div class="user_avatar_container col-2">
 							<img src="./profile_pics/assaf.jpg" alt="User's Avatar"/>
 						</div>
 						<div class="user_info_container col-6">
 							<div class="user_full_name_comes_here">Assaf Levy</div>
 							<div class="user_status_comes_here hide_on_mobile">Online</div>
-						</div>
+						</div> -->
+<!-- #################################################### -->
+
 						<div class="logout_btn_container col-4">
 							<button class="logout btn btn-dark">Logout</button>
 						</div>
@@ -93,7 +106,27 @@
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-confirm/3.3.4/jquery-confirm.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.7.8/plyr.min.js"></script>
 
+		<script>
+			// If username is in the URL, save it to localStorage
+			const params = new URLSearchParams(window.location.search);
+			const username = params.get('username');
+			if (username) {
+				localStorage.setItem('username', username);
+				window.history.replaceState({}, document.title, window.location.pathname);
+			}
+
+			// Set user info in sidebar
+			const loggedInUser = localStorage.getItem('username');
+			if (loggedInUser) {
+				// Optionally, fetch user info from server via AJAX
+				// For now, just set the username as the display name
+				document.addEventListener("DOMContentLoaded", function() {
+				document.getElementById('user_full_name').textContent = loggedInUser;
+				document.getElementById('user_avatar').src = `./profile_pics/${loggedInUser}.jpg`;
+				});
+			}
+		</script>
+
 		<script src="./assets/js/main.js?v=<?php echo time(); ?>"></script>
-		
 	</body>
 </html>
