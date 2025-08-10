@@ -27,6 +27,13 @@ function generateToken($length = 64) {
     return bin2hex(random_bytes($length/2));
 }
 
+function get_config_value($setting) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT value FROM config WHERE setting = ?");
+    $stmt->execute([$setting]);
+    return $stmt->fetchColumn();
+}
+
 // --- REQUEST OTP ---
 // checks honeypot, validate request limit, generate OTP + expiry, sends brevo API, updates DB
 if ($data === 'request_otp') {
@@ -84,8 +91,9 @@ if ($data === 'request_otp') {
     $stmt->execute([$otp, $expiry->format('Y-m-d H:i:s'), $now->format('Y-m-d H:i:s'), $user['id']]);
 
     // Send email via Brevo API
-    $brevoKey = 'YOUR_BREVO_API_KEY';
-    $email = 'you@example.com'; // fetch from DB if email exists
+    $brevoKey = get_config_value('brevo_api_key');
+    $emailFrom = get_config_value('email_from_address'); // fetch from DB if email exists
+    $email = 'itamarc101@gmail.com';
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, "https://api.brevo.com/v3/smtp/email");
@@ -96,14 +104,24 @@ if ($data === 'request_otp') {
     ]);
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-        "sender" => ["name" => "AssafMedia", "email" => "no-reply@assafmedia.com"],
+        "sender" => ["name" => "AssafMedia", "email" => $emailFrom],
         "to" => [["email" => $email]],
         "subject" => "Your OTP Code",
         "htmlContent" => "<p>Your OTP is: <strong>$otp</strong></p>"
     ]));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
     $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
+
+    // Log or output the response for debugging
+    file_put_contents(__DIR__ . '/brevo_debug.log', "HTTP $httpCode\n$response\n", FILE_APPEND);
+
+    if ($httpCode !== 201) { // 201 is success for Brevo
+        echo json_encode(['error' => 'Failed to send OTP email', 'brevo_response' => $response]);
+        exit;
+    }
 
     echo json_encode(['status' => 'otp_sent']);
     exit;

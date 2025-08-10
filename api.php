@@ -13,6 +13,19 @@
 	#endregion start
 	
 	switch($data){
+		case "get_user_info":
+			$username = $_POST["username"] ?? null;
+			if(!$username){
+				echo json_encode(false); die();
+			}
+			$stmt = $pdo->prepare("SELECT full_name, profile_picture_url FROM users WHERE username = ?");
+			$stmt->execute([$username]);
+			$user = $stmt->fetch(PDO::FETCH_ASSOC);
+			if (!$user) {
+				echo json_encode(false); die();
+			}
+			echo json_encode($user); die();
+		break;
 				
 		case "get_chats":
 			#region get_chats
@@ -60,7 +73,7 @@
 				if (empty($row['contact_name'])) {
 					$row['contact_name'] = $row['contact_id'];
 				}
-				if (empty($row['profile_picture_url'])) {
+    			if (empty($row['profile_picture_url']) || !file_exists(__DIR__ . '/' . $row['profile_picture_url'])) {
 					$row['profile_picture_url'] = './profile_pics/unknown.jpg';
 				}
 			}
@@ -262,7 +275,81 @@
 			echo json_encode(false);
 			
 			#endregion send_wa_txt_msg
-		break;			
+		break;	
+		
+		case "send_wa_img_msg":
+			$username = $_POST["username"] ?? null;
+			$contact_id = $_POST["contact_id"] ?? null;
+			if (!$username || !$contact_id || !isset($_FILES["image"])) {
+				echo json_encode(["error" => "Missing data"]);
+				die();
+			}
+			$file = $_FILES["image"];
+			$ext = pathinfo($file["name"], PATHINFO_EXTENSION);
+			$target = "uploads/" . uniqid("img_", true) . "." . $ext;
+			if (!is_dir("uploads")) mkdir("uploads");
+			if (move_uploaded_file($file["tmp_name"], $target)) {
+				// Save message with image URL
+				mysql_insert("messages", [
+					"belongs_to_username" => $username,
+					"contact_id" => $contact_id,
+					"is_from_me" => 1,
+					"msg_type" => "image",
+					"msg_body" => $target,
+				]);
+				echo json_encode(["success" => true, "url" => $target]);
+			} else {
+				echo json_encode(["error" => "Upload failed"]);
+			}
+			die();
+		break;
+
+		case "send_wa_file_msg":
+			$username = $_POST["username"] ?? null;
+			$contact_id = $_POST["contact_id"] ?? null;
+			if (!$username || !$contact_id || !isset($_FILES["file"])) {
+				echo json_encode(["error" => "Missing data"]);
+				die();
+			}
+			$file = $_FILES["file"];
+			$ext = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
+			$allowed = ["jpg", "jpeg", "png", "gif", "pdf"];
+			if (!in_array($ext, $allowed)) {
+				echo json_encode(["error" => "File type not allowed"]);
+				die();
+			}
+			$target = "uploads/" . uniqid("file_", true) . "." . $ext;
+			if (!is_dir("uploads")) mkdir("uploads");
+			if (move_uploaded_file($file["tmp_name"], $target)) {
+				$msg_type = ($ext === "pdf") ? "pdf" : "image";
+				mysql_insert("messages", [
+					"belongs_to_username" => $username,
+					"contact_id" => $contact_id,
+					"is_from_me" => 1,
+					"msg_type" => $msg_type,
+					"msg_body" => $target,
+				]);
+				echo json_encode(["success" => true, "url" => $target]);
+			} else {
+				echo json_encode(["error" => "Upload failed"]);
+			}
+			die();
+		break;
+
+		case "delete_msg_for_both":
+			$msg_id = $_POST["msg_id"] ?? null;
+			if (!$msg_id) {
+				echo json_encode(["error" => "Missing msg_id"]);
+				die();
+			}
+			// Mark both messages (for both users) as revoked
+			$query = "UPDATE messages SET msg_type='revoked', msg_body=NULL WHERE row_id = ? OR (msg_body = (SELECT msg_body FROM messages WHERE row_id = ?) AND msg_type = 'text')";
+			$stmt = $pdo->prepare($query);
+			$stmt->execute([$msg_id, $msg_id]);
+			echo json_encode(["success" => true]);
+			die();
+		break;
+		
 	}
 	
 	include_all_plugins("api.php");

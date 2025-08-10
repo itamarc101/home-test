@@ -90,13 +90,26 @@
 				<!--chat-container -->
 				<div id="msgs" class="chat-container"></div>
 				<!--input-bottom -->
-				<form id="send_msg" class="send_msg_form chatbox-input">
+				
+				<!-- <form id="send_msg" class="send_msg_form chatbox-input">
 					<i class="fa-sharp fa-solid fa-paperclip"></i>
 					<input id="msg" type="text" placeholder="Type a message" required />
 					<button class="submit_msg">
 						<i class="fa-solid fa-paper-plane"></i>
 					</button>
+				</form> -->
+				<form id="send_msg" class="send_msg_form chatbox-input">
+					<label for="file_input" style="cursor:pointer;">
+						<i class="fa-sharp fa-solid fa-paperclip"></i>
+					</label>
+					 <!-- capture="environment" for mobile to use camera directly  -->
+					<input type="file" id="file_input" accept="image/*,application/pdf" style="display:none;" capture="environment" />
+					<input id="msg" type="text" placeholder="Type a message" required />
+					<button class="submit_msg">
+						<i class="fa-solid fa-paper-plane"></i>
+					</button>
 				</form>
+
 			</div>		
 		</div>
 
@@ -126,6 +139,29 @@
 				});
 			}
 		</script>
+
+		<!-- <script>
+		const loggedInUser = localStorage.getItem('username');
+		if (loggedInUser) {
+			document.addEventListener("DOMContentLoaded", function() {
+				fetch('./api.php?data=get_user_info', {
+					method: 'POST',
+					headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+					body: 'username=' + encodeURIComponent(loggedInUser)
+				})
+				.then(res => res.json())
+				.then(user => {
+					if (user && user.full_name) {
+						document.getElementById('user_full_name').textContent = user.full_name;
+						document.getElementById('user_avatar').src = user.profile_picture_url || './profile_pics/unknown.jpg';
+					} else {
+						document.getElementById('user_full_name').textContent = loggedInUser;
+						document.getElementById('user_avatar').src = './profile_pics/unknown.jpg';
+					}
+				});
+			});
+		}
+		</script> -->
 
 		<script src="./assets/js/main.js?v=<?php echo time(); ?>"></script>
 	</body>

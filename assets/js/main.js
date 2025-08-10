@@ -239,6 +239,11 @@ var proccessMsgsArr = function(msgs){
 			$msgContent = "";
 			$msgContent += '<img src="'+$msg["msg_body"]+'" />';
 		}
+
+		if($msgType=="pdf"){
+			$msgContent = "";
+			$msgContent += '<a href="'+$msg["msg_body"]+'" target="_blank"><i class="fa-solid fa-file-pdf fa-2x"></i> PDF</a>';
+		}
 		
 		if($msgType=="e2e_notification"){
 			continue;
@@ -772,6 +777,133 @@ var enableMsgsUpdateInterval = function(){
 
 $(document).ready(function(){
 	consoleLog("document ready",{level: 0});
+
+	// Handle file input (file selection or camera)
+    $("#file_input").on("change", function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            previewAndSendFile(file);
+        }
+    });
+
+	// Drag & Drop for desktop
+    if (!/Mobi|Android/i.test(navigator.userAgent)) {
+        $("#chat_window").on("dragover", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).addClass("dragover");
+        });
+        $("#chat_window").on("dragleave", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass("dragover");
+        });
+        $("#chat_window").on("drop", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            $(this).removeClass("dragover");
+            const file = e.originalEvent.dataTransfer.files[0];
+            if (file && file.type.startsWith("image/") || file.type === "application/pdf") {
+                previewAndSendFile(file);
+            }
+        });
+    }
+
+    // Preview before sending
+    function previewAndSendFile(file) {
+		if (file.type.startsWith("image/")) {
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				// Show preview (optional)
+				$.alert({
+					title: "Send this image?",
+					content: `<img src="${e.target.result}" style="max-width:100%;">`,
+					buttons: {
+						send: {
+							text: "Send",
+							btnClass: "btn-blue",
+							action: function() {
+								sendImageMsg(file);
+							}
+						},
+						cancel: function(){}
+					}
+				});
+			};
+			reader.readAsDataURL(file);
+		}
+		else if (file.type === "application/pdf") {
+			$.alert({
+				title: "Send this PDF?",
+				content: `<i class="fa-solid fa-file-pdf fa-3x"></i><br>${file.name}`,
+				buttons: {
+					send: {
+						text: "Send",
+						btnClass: "btn-blue",
+						action: function() {
+							sendFileMsg(file);
+						}
+					},
+					cancel: function(){}
+				}
+        	});
+		}
+    }
+
+	// Send file (image or PDF) to server
+	function sendFileMsg(file) {
+		var $username = $.globals.username;
+		var $contactId = $.globals.contactId;
+		if (!$username || !$contactId) return;
+
+		var formData = new FormData();
+		formData.append("route", "send_wa_file_msg");
+		formData.append("username", $username);
+		formData.append("contact_id", $contactId);
+		formData.append("file", file);
+
+		$.ajax({
+			url: $.settings.api_full_url + "send_wa_file_msg",
+			method: "POST",
+			data: formData,
+			processData: false,
+			contentType: false,
+			success: function(data) {
+				loadMsgsFromServerByContactId();
+			},
+			error: function(err) {
+				alert("Failed to send file.");
+			}
+		});
+	}
+
+	// Send image to server
+    function sendImageMsg(file) {
+        var $username = $.globals.username;
+        var $contactId = $.globals.contactId;
+        if (!$username || !$contactId) return;
+
+        var formData = new FormData();
+        formData.append("route", "send_wa_img_msg");
+        formData.append("username", $username);
+        formData.append("contact_id", $contactId);
+        formData.append("image", file);
+
+        $.ajax({
+            url: $.settings.api_full_url + "send_wa_img_msg",
+            method: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(data) {
+                loadMsgsFromServerByContactId();
+            },
+            error: function(err) {
+                alert("Failed to send image.");
+            }
+        });
+    }
+
 });
 
 $(window).on("load",function(){
@@ -794,6 +926,40 @@ $(window).on("load",function(){
 
 		loadMsgsFromServerByContactId(false);
 	})
+
+	$("body").on("click", ".message-box", function(e){
+    // Prevent double popup if clicking the delete icon itself
+    if ($(e.target).hasClass("delete-msg-btn") || $(e.target).closest(".delete-msg-btn").length) return;
+
+    var msgId = $(this).find(".msg_id").text();
+    var isFromMe = $(this).hasClass("my-message");
+    var isRevoked = $(this).find(".content").text().includes("הודעה זו נמחקה");
+
+    // Only allow delete for your own messages and not already deleted
+    if(isFromMe && !isRevoked){
+        $.confirm({
+            title: "Message Options",
+            content: "What would you like to do?",
+            buttons: {
+                delete: {
+                    text: "Delete for everyone",
+                    btnClass: "btn-red",
+                    action: function () {
+                        $.ajax({
+                            url: "./api.php?data=delete_msg_for_both",
+                            method: "POST",
+                            data: { msg_id: msgId },
+                            success: function(res){
+                                loadMsgsFromServerByContactId();
+                            }
+                        });
+                    }
+                },
+                cancel: function () {}
+            }
+        });
+    }
+});
 
 	$("body").on("click","#chats .chat",function(){
 		var $this = $(this);
@@ -847,8 +1013,12 @@ $(window).on("load",function(){
 				yes:{
 					text: "Yes",
 					action: function(){
-						popup("Logout function comes here!");
-					}
+						// Clear localStorage/session
+						localStorage.removeItem("username");
+						localStorage.removeItem("auth_token");
+						// Redirect to login/main page
+						window.location.href = "http://localhost:3000/home-test/index.php";
+                	}
 				},
 				no:{
 					text: "No",
