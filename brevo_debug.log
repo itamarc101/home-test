@@ -67,3 +67,9 @@ HTTP 201
 HTTP 201
 {"messageId":"<202508111049.79371028784@smtp-relay.mailin.fr>"}
 
+HTTP 201
+{"messageId":"<202508111104.10759974310@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508111106.63246692434@smtp-relay.mailin.fr>"}
+
