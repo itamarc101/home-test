@@ -195,6 +195,7 @@ var countMsgsInActiveChat = function(){
 	return $("#msgs").find(".message-box").length;
 }
 
+// process*
 var proccessMsgsArr = function(msgs){
 	var $msgs = msgs;
 	
@@ -524,6 +525,7 @@ var sendTxtMsg = async function($msg=null, $contactId=null, $username=null, $tim
 		return false;
 	}
 			
+	// width or with*
 	if(!$msg){
 		consoleLog("you're trying to call sendTxtMsg width empty msg: ",$msg, {level: 5, type: "error"});
 		$.globals.isPendingMsg = 0;
@@ -772,7 +774,8 @@ var disableMsgsUpdateInterval = function(){
 }
 
 var enableMsgsUpdateInterval = function(){
-	$.settings.updateChatWithInterval = false;
+	// $.settings.updateChatWithInterval = false;
+	$.settings.updateChatWithInterval = true;
 }
 
 $(document).ready(function(){
@@ -917,7 +920,7 @@ $(window).on("load",function(){
 	});
 
 	$("body").on("click", ".goToChat",function(){		
-		var $contactId = $this.attr("data-contactId");
+		var $contactId = $(this).attr("data-contactId");
 		$(".contact_id").text($contactId);
 
 		$.globals.contactId = $contactId;
@@ -927,6 +930,7 @@ $(window).on("load",function(){
 		loadMsgsFromServerByContactId(false);
 	})
 
+	// deleting messages
 	$("body").on("click", ".message-box", function(e){
     // Prevent double popup if clicking the delete icon itself
     if ($(e.target).hasClass("delete-msg-btn") || $(e.target).closest(".delete-msg-btn").length) return;

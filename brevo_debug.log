@@ -13,3 +13,27 @@ HTTP 201
 HTTP 201
 {"messageId":"<202508101202.67088156558@smtp-relay.mailin.fr>"}
 
+HTTP 201
+{"messageId":"<202508101436.12093574474@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101438.18845583135@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101440.80544367204@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101627.65271739163@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101657.25458703640@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101659.61104674563@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101701.43594052331@smtp-relay.mailin.fr>"}
+
+HTTP 201
+{"messageId":"<202508101959.18777277096@smtp-relay.mailin.fr>"}
+
