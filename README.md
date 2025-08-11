@@ -1,4 +1,3 @@
-# home-test
 
 ## Project Additions & Features
 
@@ -82,3 +81,5 @@ npm start
 ```
 6. In your browser, go to http://localhost:3000/ to access the login page.
 9. After logging in, you will be redirected to the main chat application at http://localhost/home-test/index.php
+
+AssafMedia home test
