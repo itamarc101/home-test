@@ -289,11 +289,30 @@
 			$target = "uploads/" . uniqid("img_", true) . "." . $ext;
 			if (!is_dir("uploads")) mkdir("uploads");
 			if (move_uploaded_file($file["tmp_name"], $target)) {
-				// Save message with image URL
-				mysql_insert("messages", [
+				// Get sender's id and recipient's username (same as txt msg logic)
+				$my_contact_id_query = "SELECT `id` FROM users WHERE `username` = ?  LIMIT 1";
+				$des_username_query = "SELECT `username` FROM users WHERE `id` = ?  LIMIT 1";
+				$my_contact_id = mysql_fetch_array($my_contact_id_query,[$username]);
+				$des_username = mysql_fetch_array($des_username_query,[$contact_id]);
+				$my_contact_id = $my_contact_id[0][0] ?? null;
+				$des_username = $des_username[0][0] ?? null;
+				if(!$my_contact_id || !$des_username){
+					echo json_encode(["error" => "User mapping failed"]);
+					die();
+				}
+				// Insert message for sender
+				$results1 = mysql_insert("messages", [
 					"belongs_to_username" => $username,
 					"contact_id" => $contact_id,
 					"is_from_me" => 1,
+					"msg_type" => "image",
+					"msg_body" => $target,
+				]);
+				// Insert message for recipient
+				$results2 = mysql_insert("messages", [
+					"belongs_to_username" => $des_username,
+					"contact_id" => $my_contact_id,
+					"is_from_me" => 0,
 					"msg_type" => "image",
 					"msg_body" => $target,
 				]);
@@ -321,12 +340,31 @@
 			$target = "uploads/" . uniqid("file_", true) . "." . $ext;
 			if (!is_dir("uploads")) mkdir("uploads");
 			if (move_uploaded_file($file["tmp_name"], $target)) {
-				$msg_type = ($ext === "pdf") ? "pdf" : "image";
-				mysql_insert("messages", [
+				// Get sender's id and recipient's username (same as txt msg logic)
+				$my_contact_id_query = "SELECT `id` FROM users WHERE `username` = ?  LIMIT 1";
+				$des_username_query = "SELECT `username` FROM users WHERE `id` = ?  LIMIT 1";
+				$my_contact_id = mysql_fetch_array($my_contact_id_query,[$username]);
+				$des_username = mysql_fetch_array($des_username_query,[$contact_id]);
+				$my_contact_id = $my_contact_id[0][0] ?? null;
+				$des_username = $des_username[0][0] ?? null;
+				if(!$my_contact_id || !$des_username){
+					echo json_encode(["error" => "User mapping failed"]);
+					die();
+				}
+				// Insert message for sender
+				$results1 = mysql_insert("messages", [
 					"belongs_to_username" => $username,
 					"contact_id" => $contact_id,
 					"is_from_me" => 1,
-					"msg_type" => $msg_type,
+					"msg_type" => "file",
+					"msg_body" => $target,
+				]);
+				// Insert message for recipient
+				$results2 = mysql_insert("messages", [
+					"belongs_to_username" => $des_username,
+					"contact_id" => $my_contact_id,
+					"is_from_me" => 0,
+					"msg_type" => "file",
 					"msg_body" => $target,
 				]);
 				echo json_encode(["success" => true, "url" => $target]);
